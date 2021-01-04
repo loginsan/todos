@@ -1,0 +1,7 @@
+.todo-count {
+	text-align: left;
+}
+
+.todo-count strong {
+	font-weight: 300;
+}
