@@ -2,16 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './Tasks-count.css';
 
-const TasksCount = ({count}) => {
-  return <span className="todo-count">{count} items left</span>
-}
+const TasksCount = ({ count }) => <span className="todo-count">{count} items left</span>;
 
 TasksCount.defaultProps = {
-  count: 0
-}
+  count: 0,
+};
 
 TasksCount.propTypes = {
-  count: PropTypes.number
-}
+  count: PropTypes.number,
+};
 
 export default TasksCount;

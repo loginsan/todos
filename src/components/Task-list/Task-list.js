@@ -1,32 +1,28 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import './Task-list.css';
 import Task from '../Task';
+import './Task-list.css';
 
+const TaskList = ({ items, handlers }) => {
+  const todoListItems = items.map(({ id, ...todo }) => (
+    <Task
+      key={id}
+      id={id}
+      {...todo}
+      handlers={handlers}
+    />
+  ));
 
-export default class TaskList extends Component {
+  return <ul className="todo-list">{todoListItems}</ul>;
+};
 
-  static defaultProps = {
-    items: []
-  }
-
-  render() {
-    const {items, handlers} = this.props;
-    const todoListItems = items.map( ({id, isDone, isEdit, isHidden, description, created}) => (
-      <Task key={id} id={id} isDone={isDone} isEdit={isEdit} isHidden={isHidden}
-        description={description} created={created} handlers={handlers}
-      />
-    ));
-    return (
-      <ul className="todo-list">
-      { todoListItems }
-      </ul>
-    )
-  }
-
-}
+TaskList.defaultProps = {
+  items: [],
+};
 
 TaskList.propTypes = {
   items: PropTypes.arrayOf(PropTypes.object),
-  handlers: PropTypes.object.isRequired
-}
+  handlers: PropTypes.objectOf(PropTypes.func).isRequired,
+};
+
+export default TaskList;
