@@ -99,8 +99,8 @@ export default class App extends Component {
       isHidden: false,
       description: text,
       created: demo ? Date.now() - Math.ceil(1000 * 60 * 7 * Math.random()) : Date.now(),
-    }
-  };
+    };
+  }
 
   render() {
     const { todoData } = this.state;

@@ -4,14 +4,7 @@ import Task from '../Task';
 import './Task-list.css';
 
 const TaskList = ({ items, handlers }) => {
-  const todoListItems = items.map(({ id, ...todo }) => (
-    <Task
-      key={id}
-      id={id}
-      {...todo}
-      handlers={handlers}
-    />
-  ));
+  const todoListItems = items.map(({ id, ...todo }) => <Task key={id} id={id} {...todo} handlers={handlers} />);
 
   return <ul className="todo-list">{todoListItems}</ul>;
 };
