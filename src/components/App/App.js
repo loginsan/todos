@@ -4,14 +4,13 @@ import Main from '../Main';
 import enums from '../../constant';
 
 export default class App extends Component {
-  state = {
-    todoData: [
-      this.createTodoObj('Completed task', true),
-      this.createTodoObj('Editing task', true),
-      this.createTodoObj('Active task', true),
-      this.createTodoObj('Some test todo', true),
-    ],
-  };
+  constructor() {
+    super();
+    const loadState = localStorage.getItem('todoState');
+    this.state = {
+      todoData: loadState === null ? [] : JSON.parse(loadState).todoData,
+    };
+  }
 
   onToggleDone = (id) => {
     this.setState(({ todoData }) => this.toggleProp(todoData, id, 'isDone'));
@@ -78,6 +77,10 @@ export default class App extends Component {
     todoData: propArr.map((el) => (el.id === id ? { ...el, [name]: !el[name] } : el)),
   });
 
+  saveState = () => {
+    localStorage.setItem('todoState', JSON.stringify(this.state));
+  };
+
   listHandlers = () => ({
     delete: this.onDelete,
     check: this.onToggleDone,
@@ -99,11 +102,12 @@ export default class App extends Component {
       isHidden: false,
       description: text,
       created: demo ? Date.now() - Math.ceil(1000 * 60 * 7 * Math.random()) : Date.now(),
-    };
-  }
+    }
+  };
 
   render() {
     const { todoData } = this.state;
+    this.saveState();
     return (
       <section className="todoapp">
         <Header addTodo={this.onAddTodo} />
