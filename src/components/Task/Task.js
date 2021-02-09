@@ -14,7 +14,49 @@ export default class Task extends Component {
     isHidden: false,
     description: 'Just do it',
     created: Date.now(),
+    timeLeft: 300,
   };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      timer: undefined,
+      isPaused: true,
+      timeLeft: 0,
+    };
+  }
+
+  componentDidMount() {
+    const { timeLeft } = this.props;
+    this.setState({
+      isPaused: true,
+      timer: setInterval(this.updateTimer, 1000),
+      timeLeft,
+    });
+  }
+
+  componentDidUpdate() {
+    // ?
+  }
+
+  componentWillUnmount() {
+    const { timer } = this.state;
+    clearInterval(timer);
+  }
+
+  handlePause = () => {
+    const { isPaused } = this.state;
+    if (!isPaused) {
+      this.setState({ isPaused: true });
+    }
+  }
+
+  handlePlay = () => {
+    const { isPaused } = this.state;
+    if (isPaused) {
+      this.setState({ isPaused: false });
+    }
+  }
 
   setClassName = (isDone, isEdit, isHidden) => {
     let classNames = '';
@@ -24,8 +66,21 @@ export default class Task extends Component {
     return classNames;
   };
 
+  splitTimeLeft = (timeLeft) => [Math.floor(timeLeft / 60), timeLeft % 60];
+
+  updateTimer = () => {
+    const { isPaused, timeLeft } = this.state;
+    if (! isPaused ) {
+      this.setState({
+        timeLeft: timeLeft - 1,
+      });
+    }
+  }
+
   render() {
     const { id, isDone, isEdit, isHidden, description, created, handlers } = this.props;
+    const { timeLeft } = this.state;
+    const [mm, ss] = this.splitTimeLeft(timeLeft);
 
     const classNames = this.setClassName(isDone, isEdit, isHidden);
     const editField = isEdit && (
@@ -45,8 +100,13 @@ export default class Task extends Component {
             checked={checkedToggle}
           />
           <label htmlFor={`check${id}`}>
-            <span className="description" onDoubleClick={() => handlers.check(id)}>
+            <span className="title" onDoubleClick={() => handlers.check(id)}>
               {description}
+            </span>
+            <span className="description">
+              <button className="icon icon-play" type="button" onClick={this.handlePlay} aria-label="play" />
+              <button className="icon icon-pause" type="button" onClick={this.handlePause} aria-label="pause" />
+              {mm}:{ss}
             </span>
             <span className="created">
               {formatDistanceToNow(created, { addSuffix: true, includeSeconds: true, locale: ruLocale })}
@@ -82,5 +142,6 @@ Task.propTypes = {
   isHidden: PropTypes.bool,
   description: PropTypes.string,
   created: PropTypes.number,
+  timeLeft: PropTypes.number,
   handlers: PropTypes.objectOf(PropTypes.func).isRequired,
 };

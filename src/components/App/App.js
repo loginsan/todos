@@ -69,6 +69,10 @@ export default class App extends Component {
     }
   };
 
+  handleNewTaskSubmit = (event) => {
+    event.preventDefault();
+  }
+
   setId() {
     return `key${Date.now() - Math.ceil(1000 * Math.random())}`;
   }
@@ -102,15 +106,16 @@ export default class App extends Component {
       isHidden: false,
       description: text,
       created: demo ? Date.now() - Math.ceil(1000 * 60 * 7 * Math.random()) : Date.now(),
-    }
-  };
+      timeLeft: 300,
+    };
+  }
 
   render() {
     const { todoData } = this.state;
     this.saveState();
     return (
       <section className="todoapp">
-        <Header addTodo={this.onAddTodo} />
+        <Header addTodo={this.onAddTodo} handleNewTaskSubmit={this.handleNewTaskSubmit} />
         <Main items={todoData} listHandlers={this.listHandlers()} footerHandlers={this.footerHandlers()} />
       </section>
     );
