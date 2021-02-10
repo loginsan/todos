@@ -13,11 +13,11 @@ export default class App extends Component {
   }
 
   onToggleDone = (id) => {
-    this.setState(({ todoData }) => this.toggleProp(todoData, id, 'isDone'));
+    this.setState( ({ todoData }) => this.toggleProp(todoData, id, 'isDone') );
   };
 
   onEdit = (id) => {
-    this.setState(({ todoData }) => this.toggleProp(todoData, id, 'isEdit'));
+    this.setState( ({ todoData }) => this.toggleProp(todoData, id, 'isEdit') );
   };
 
   onEditKeyUp = (id, event) => {
@@ -26,27 +26,27 @@ export default class App extends Component {
   };
 
   onChangeText = (id, event) => {
-    this.setState(({ todoData }) => ({
-      todoData: todoData.map((todo) => (todo.id === id ? { ...todo, description: event.target.value } : todo)),
-    }));
+    this.setState( ({ todoData }) => ({
+      todoData: todoData.map( (todo) => (todo.id === id ? { ...todo, description: event.target.value } : todo) ),
+    }) );
   };
 
   onDelete = (id) => {
-    this.setState(({ todoData }) => ({
-      todoData: todoData.filter((el) => el.id !== id),
-    }));
+    this.setState( ({ todoData }) => ({
+      todoData: todoData.filter(el => el.id !== id),
+    }) );
   };
 
   onClearDone = () => {
-    this.setState(({ todoData }) => ({
-      todoData: todoData.filter((el) => el.isDone === false),
-    }));
+    this.setState( ({ todoData }) => ({
+      todoData: todoData.filter(el => el.isDone === false),
+    }) );
   };
 
   onFilterList = (event, filter = enums.ALL) => {
     document.querySelector('.filters .selected').classList.remove('selected');
     event.target.classList.add('selected');
-    this.setState(({ todoData }) => ({
+    this.setState( ({ todoData }) => ({
       todoData: todoData.map((el) => {
         let flagHidden = false;
         if (filter === enums.ACTIVE_CN) flagHidden = el.isDone;
@@ -59,29 +59,37 @@ export default class App extends Component {
   onAddTodo = (event) => {
     const ev = event;
     const { parentNode } = ev.target;
-    const todoParams = parentNode.querySelector('input');
-    const val = Array.from(todoParams).map(input => input.value);
-    if (ev.key === 'Enter' && val[0] !== '') {
-      const time = (val[1]? parseInt(val[1], 10) : 5) * 60 + (val[2]? parseInt(val[2], 10) : 0);
-      this.setState(({ todoData }) => {
-        ev.target.value = '';
-        return {
-          todoData: [...todoData, this.createTodoObj(val[0], time)],
-        };
-      });
+    const todoParams = parentNode.querySelectorAll('input');
+    const title = todoParams[0].value;
+    if (ev.key === 'Enter' && title !== '') {
+      const MM = todoParams[1].value;
+      const SS = todoParams[2].value;
+      const time = (MM ? parseInt(MM, 10) : 5) * 60 + (SS ? parseInt(SS, 10) : 0);
+      console.log(MM, SS, time);
+      this.clearInputs(todoParams);
+      this.setState( ({ todoData }) => ({
+          todoData: [...todoData, this.createTodoObj(title, time)],
+      }) );
     }
   };
 
   handleNewTaskSubmit = (event) => {
     event.preventDefault();
-  }
+  };
 
   setId() {
     return `key${Date.now() - Math.ceil(1000 * Math.random())}`;
   }
 
+  clearInputs = (nodes) => {
+    const inputs = nodes;
+    for (let i = 0; i < inputs.length; i++) {
+      inputs[i].value = '';
+    }
+  };
+
   toggleProp = (propArr, id, name) => ({
-    todoData: propArr.map((el) => (el.id === id ? { ...el, [name]: !el[name] } : el)),
+    todoData: propArr.map(el => (el.id === id ? { ...el, [name]: !el[name] } : el)),
   });
 
   saveState = () => {
@@ -101,15 +109,15 @@ export default class App extends Component {
     clear: this.onClearDone,
   });
 
-  createTodoObj(text, demo = false) {
+  createTodoObj(text, time) {
     return {
       id: this.setId(),
       isDone: false,
       isEdit: false,
       isHidden: false,
       description: text,
-      created: demo ? Date.now() - Math.ceil(1000 * 60 * 7 * Math.random()) : Date.now(),
-      timeLeft: 300,
+      created: Date.now(),
+      timeLeft: time,
     };
   }
 
