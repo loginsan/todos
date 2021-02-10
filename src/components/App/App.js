@@ -58,12 +58,15 @@ export default class App extends Component {
 
   onAddTodo = (event) => {
     const ev = event;
-    const { value } = ev.target;
-    if (ev.key === 'Enter' && value !== '') {
+    const { parentNode } = ev.target;
+    const todoParams = parentNode.querySelector('input');
+    const val = Array.from(todoParams).map(input => input.value);
+    if (ev.key === 'Enter' && val[0] !== '') {
+      const time = (val[1]? parseInt(val[1], 10) : 5) * 60 + (val[2]? parseInt(val[2], 10) : 0);
       this.setState(({ todoData }) => {
         ev.target.value = '';
         return {
-          todoData: [...todoData, this.createTodoObj(value)],
+          todoData: [...todoData, this.createTodoObj(val[0], time)],
         };
       });
     }

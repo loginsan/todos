@@ -35,8 +35,12 @@ export default class Task extends Component {
     });
   }
 
-  componentDidUpdate() {
-    // ?
+  componentDidUpdate(prevProps) {
+    const { isDone } = this.props;
+    const { isPaused } = this.state;
+    if (prevProps.isDone !== isDone && isDone) {
+      this.handleTimerOnDone(isDone, isPaused);
+    }
   }
 
   componentWillUnmount() {
@@ -45,15 +49,15 @@ export default class Task extends Component {
   }
 
   handlePause = () => {
-    const { isPaused } = this.state;
-    if (!isPaused) {
+    const { isPaused, timeLeft } = this.state;
+    if (!isPaused && timeLeft > 0) {
       this.setState({ isPaused: true });
     }
   }
 
   handlePlay = () => {
-    const { isPaused } = this.state;
-    if (isPaused) {
+    const { isPaused, timeLeft } = this.state;
+    if (isPaused && timeLeft > 0) {
       this.setState({ isPaused: false });
     }
   }
@@ -66,21 +70,32 @@ export default class Task extends Component {
     return classNames;
   };
 
-  splitTimeLeft = (timeLeft) => [Math.floor(timeLeft / 60), timeLeft % 60];
+  splitTime = (time) => `${ this.printTick(Math.floor(time / 60)) }:${ this.printTick(time % 60) }`;
+
+  printTick = (tp) => tp > 9? `${tp}` : `0${tp}`;
 
   updateTimer = () => {
     const { isPaused, timeLeft } = this.state;
-    if (! isPaused ) {
+    if (!isPaused && timeLeft > 0) {
       this.setState({
         timeLeft: timeLeft - 1,
       });
     }
   }
 
+  handleTimerOnDone = (done, pause) => { // done:false && paused:false > paused:true, 
+    if (!pause) {
+      this.setState({
+        isPaused: done,
+      })
+    }
+  }
+
   render() {
-    const { id, isDone, isEdit, isHidden, description, created, handlers } = this.props;
+    const { id, isDone, isEdit, isHidden, description, created, handlers, timeLeft: timeLeftInit } = this.props;
     const { timeLeft } = this.state;
-    const [mm, ss] = this.splitTimeLeft(timeLeft);
+    const tMmSs = this.splitTime(timeLeft);
+    const inverseTime = `Потрачено ${timeLeftInit - timeLeft} секунд`;
 
     const classNames = this.setClassName(isDone, isEdit, isHidden);
     const editField = isEdit && (
@@ -106,7 +121,7 @@ export default class Task extends Component {
             <span className="description">
               <button className="icon icon-play" type="button" onClick={this.handlePlay} aria-label="play" />
               <button className="icon icon-pause" type="button" onClick={this.handlePause} aria-label="pause" />
-              {mm}:{ss}
+              <b title={inverseTime}>{ tMmSs }</b>
             </span>
             <span className="created">
               {formatDistanceToNow(created, { addSuffix: true, includeSeconds: true, locale: ruLocale })}
