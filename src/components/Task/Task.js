@@ -117,14 +117,16 @@ export default class Task extends Component {
           <label htmlFor={`check${id}`}>
             <span className="title" onDoubleClick={() => handlers.check(id)}>
               {description}
+              <br />
+              <span className="created">
+                {formatDistanceToNow(created, { addSuffix: true, locale: ruLocale })}
+              </span>
             </span>
+
             <span className="description">
               <button className="icon icon-play" type="button" onClick={this.handlePlay} aria-label="play" />
               <button className="icon icon-pause" type="button" onClick={this.handlePause} aria-label="pause" />
-              <b title={inverseTime}>{ tMmSs }</b>
-            </span>
-            <span className="created">
-              {formatDistanceToNow(created, { addSuffix: true, includeSeconds: true, locale: ruLocale })}
+              <b title={inverseTime}> {tMmSs}</b>
             </span>
           </label>
 
