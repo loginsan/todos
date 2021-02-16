@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Tasks-filter.css';
-import enums from '../../constant';
+import enums from '../../../../constant';
 
 const TasksFilter = ({ filterFn }) => (
   <ul className="filters">

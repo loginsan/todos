@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TasksCount from '../Tasks-count';
-import TasksFilter from '../Tasks-filter';
-import TasksClear from '../Tasks-clear';
+import TasksCount from './Tasks-count';
+import TasksFilter from './Tasks-filter';
+import TasksClear from './Tasks-clear';
 import './Footer.css';
 
 const Footer = ({ items, handlers }) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TaskList from '../Task-list';
-import Footer from '../Footer';
+import TaskList from './Task-list';
+import Footer from './Footer';
 
 const Main = ({ items, listHandlers, footerHandlers }) => (
   <section className="main">

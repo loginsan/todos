@@ -2,21 +2,12 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { formatDistanceToNow } from 'date-fns';
 import ruLocale from 'date-fns/locale/ru';
-import TaskEditField from '../Task-edit-field';
+import TaskEditField from './Task-edit-field';
 import './Task.css';
-import enums from '../../constant';
+import enums from '../../../../constant';
 
 export default class Task extends Component {
-  static defaultProps = {
-    id: `key${Date.now()}`,
-    isDone: false,
-    isEdit: false,
-    isHidden: false,
-    description: 'Just do it',
-    created: Date.now(),
-    timeLeft: 300,
-  };
-
+  
   constructor(props) {
     super(props);
     this.state = {
@@ -56,8 +47,9 @@ export default class Task extends Component {
   }
 
   handlePlay = () => {
+    const { isDone } = this.props;
     const { isPaused, timeLeft } = this.state;
-    if (isPaused && timeLeft > 0) {
+    if (isPaused && timeLeft > 0 && !isDone) {
       this.setState({ isPaused: false });
     }
   }
@@ -151,6 +143,16 @@ export default class Task extends Component {
     );
   }
 }
+
+Task.defaultProps = {
+  id: `key${Date.now()}`,
+  isDone: false,
+  isEdit: false,
+  isHidden: false,
+  description: 'Just do it',
+  created: Date.now(),
+  timeLeft: 300,
+};
 
 Task.propTypes = {
   id: PropTypes.string,

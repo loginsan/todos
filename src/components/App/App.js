@@ -13,11 +13,11 @@ export default class App extends Component {
   }
 
   onToggleDone = (id) => {
-    this.setState( ({ todoData }) => this.toggleProp(todoData, id, 'isDone') );
+    this.setState( ({ todoData }) => this.toggleProp(todoData, id, enums.PROP_DONE) );
   };
 
   onEdit = (id) => {
-    this.setState( ({ todoData }) => this.toggleProp(todoData, id, 'isEdit') );
+    this.setState( ({ todoData }) => this.toggleProp(todoData, id, enums.PROP_EDIT) );
   };
 
   onEditKeyUp = (id, event) => {
@@ -56,25 +56,18 @@ export default class App extends Component {
     }));
   };
 
-  onAddTodo = (event) => {
+  onAddTodo = (event, refArray) => {
     const ev = event;
-    const { parentNode } = ev.target;
-    const todoParams = parentNode.querySelectorAll('input');
-    const title = todoParams[0].value;
+    const title = refArray[0].current.value;
     if (ev.key === 'Enter' && title !== '') {
-      const MM = todoParams[1].value;
-      const SS = todoParams[2].value;
+      const MM = refArray[1].current.value;
+      const SS = refArray[2].current.value;
       const time = (MM ? parseInt(MM, 10) : 5) * 60 + (SS ? parseInt(SS, 10) : 0);
-      console.log(MM, SS, time);
-      this.clearInputs(todoParams);
+      this.clearInputs(refArray);
       this.setState( ({ todoData }) => ({
           todoData: [...todoData, this.createTodoObj(title, time)],
       }) );
     }
-  };
-
-  handleNewTaskSubmit = (event) => {
-    event.preventDefault();
   };
 
   setId() {
@@ -84,7 +77,7 @@ export default class App extends Component {
   clearInputs = (nodes) => {
     const inputs = nodes;
     for (let i = 0; i < inputs.length; i++) {
-      inputs[i].value = '';
+      inputs[i].current.value = '';
     }
   };
 
@@ -126,7 +119,7 @@ export default class App extends Component {
     this.saveState();
     return (
       <section className="todoapp">
-        <Header addTodo={this.onAddTodo} handleNewTaskSubmit={this.handleNewTaskSubmit} />
+        <Header addTodo={this.onAddTodo} />
         <Main items={todoData} listHandlers={this.listHandlers()} footerHandlers={this.footerHandlers()} />
       </section>
     );

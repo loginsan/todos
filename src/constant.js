@@ -6,6 +6,8 @@ const enums = {
   ALL: 'All',
   ACTIVE: 'Active',
   DONE: 'Completed',
+  PROP_DONE: 'isDone',
+  PROP_EDIT: 'isEdit',
 };
 
 export default enums;
