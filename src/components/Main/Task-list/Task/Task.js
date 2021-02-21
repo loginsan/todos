@@ -6,6 +6,19 @@ import TaskEditField from './Task-edit-field';
 import './Task.css';
 import enums from '../../../../constant';
 
+
+const printTick = (tp) => (tp > 9 ? `${tp}` : `0${tp}`);
+
+const splitTime = (time) => `${printTick(Math.floor(time / 60))}:${printTick(time % 60)}`;
+
+const setClassName = (isDone, isEdit, isHidden) => {
+  let classNames = '';
+  if (isDone) classNames = enums.DONE_CN;
+  if (isEdit) classNames = enums.EDIT_CN;
+  if (isHidden) classNames += ` ${enums.HIDDEN_CN}`;
+  return classNames;
+};
+
 export default class Task extends Component {
   
   constructor(props) {
@@ -29,7 +42,7 @@ export default class Task extends Component {
   componentDidUpdate(prevProps) {
     const { isDone } = this.props;
     const { isPaused } = this.state;
-    if (prevProps.isDone !== isDone && isDone) {
+    if (isDone && prevProps.isDone !== isDone) {
       this.handleTimerOnDone(isDone, isPaused);
     }
   }
@@ -54,18 +67,6 @@ export default class Task extends Component {
     }
   }
 
-  setClassName = (isDone, isEdit, isHidden) => {
-    let classNames = '';
-    if (isDone) classNames = enums.DONE_CN;
-    if (isEdit) classNames = enums.EDIT_CN;
-    if (isHidden) classNames += ` ${enums.HIDDEN_CN}`;
-    return classNames;
-  };
-
-  splitTime = (time) => `${ this.printTick(Math.floor(time / 60)) }:${ this.printTick(time % 60) }`;
-
-  printTick = (tp) => tp > 9? `${tp}` : `0${tp}`;
-
   updateTimer = () => {
     const { isPaused, timeLeft } = this.state;
     if (!isPaused && timeLeft > 0) {
@@ -86,10 +87,10 @@ export default class Task extends Component {
   render() {
     const { id, isDone, isEdit, isHidden, description, created, handlers, timeLeft: timeLeftInit } = this.props;
     const { timeLeft } = this.state;
-    const tMmSs = this.splitTime(timeLeft);
+    const tMmSs = splitTime(timeLeft);
     const inverseTime = `Потрачено ${timeLeftInit - timeLeft} секунд`;
 
-    const classNames = this.setClassName(isDone, isEdit, isHidden);
+    const classNames = setClassName(isDone, isEdit, isHidden);
     const editField = isEdit && (
       <TaskEditField tid={id} value={description} onChange={handlers.change} onSubmit={handlers.submit} />
     );
