@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { formatDistanceToNow } from 'date-fns';
 import ruLocale from 'date-fns/locale/ru';
 import TaskEditField from './Task-edit-field';
+import Button from './Button';
 import './Task.css';
 import enums from '../../../../constant';
 
@@ -19,130 +20,98 @@ const setClassName = (isDone, isEdit, isHidden) => {
   return classNames;
 };
 
-export default class Task extends Component {
-  
-  constructor(props) {
-    super(props);
-    this.state = {
-      timer: undefined,
-      isPaused: true,
-      timeLeft: 0,
-    };
-  }
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
 
-  componentDidMount() {
-    const { timeLeft } = this.props;
-    this.setState({
-      isPaused: true,
-      timer: setInterval(this.updateTimer, 1000),
-      timeLeft,
-    });
-  }
+  // Remember the latest callback.
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
 
-  componentDidUpdate(prevProps) {
-    const { isDone } = this.props;
-    const { isPaused } = this.state;
-    if (isDone && prevProps.isDone !== isDone) {
-      this.handleTimerOnDone(isDone, isPaused);
+  // Set up the interval.
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      const id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+    return undefined;
+  }, [delay]);
+}
+
+
+const Task = ({ id, isDone, isEdit, isHidden, description, created, handlers, timeLeft }) => {
+  const [paused, setPaused] = useState(true);
+  const [time, setTime] = useState(timeLeft);
+
+  useInterval(() => {
+    if (!paused && time > 0) {
+      setTime(time - 1);
+    }
+  }, 1000);
+
+  useEffect(() => {
+    if (isDone) {
+      if (!paused) {
+        setPaused(isDone);
+      }
+    }
+  }, [isDone, paused]);
+
+  const handlePause = () => {
+    if (!paused && time > 0) {
+      setPaused(true);
     }
   }
 
-  componentWillUnmount() {
-    const { timer } = this.state;
-    clearInterval(timer);
-  }
-
-  handlePause = () => {
-    const { isPaused, timeLeft } = this.state;
-    if (!isPaused && timeLeft > 0) {
-      this.setState({ isPaused: true });
+  const handlePlay = () => {
+    if (paused && time > 0 && !isDone) {
+      setPaused(false);
     }
   }
 
-  handlePlay = () => {
-    const { isDone } = this.props;
-    const { isPaused, timeLeft } = this.state;
-    if (isPaused && timeLeft > 0 && !isDone) {
-      this.setState({ isPaused: false });
-    }
-  }
+  const tMmSs = splitTime(time);
+  const inverseTime = `Потрачено ${timeLeft - time} секунд`;
 
-  updateTimer = () => {
-    const { isPaused, timeLeft } = this.state;
-    if (!isPaused && timeLeft > 0) {
-      this.setState({
-        timeLeft: timeLeft - 1,
-      });
-    }
-  }
+  const classNames = setClassName(isDone, isEdit, isHidden);
+  const editField = isEdit && (
+    <TaskEditField tid={id} value={description} onChange={handlers.change} onSubmit={handlers.submit} />
+  );
+  const checkedToggle = isDone ? 'checked' : '';
 
-  handleTimerOnDone = (done, pause) => { // done:false && paused:false > paused:true, 
-    if (!pause) {
-      this.setState({
-        isPaused: done,
-      })
-    }
-  }
+  return (
+    <li className={classNames}>
+      <div className="view">
+        <input
+          className="toggle"
+          id={`check${id}`}
+          type="checkbox"
+          onChange={() => handlers.check(id)}
+          tabIndex="0"
+          checked={checkedToggle}
+        />
+        <label htmlFor={`check${id}`}>
+          <span className="title" onDoubleClick={() => handlers.check(id)}>
+            {description}
+            <br />
+            <span className="created">{formatDistanceToNow(created, { addSuffix: true, locale: ruLocale })}</span>
+          </span>
 
-  render() {
-    const { id, isDone, isEdit, isHidden, description, created, handlers, timeLeft: timeLeftInit } = this.props;
-    const { timeLeft } = this.state;
-    const tMmSs = splitTime(timeLeft);
-    const inverseTime = `Потрачено ${timeLeftInit - timeLeft} секунд`;
+          <span className="description">
+            <Button label="play" handleClick={handlePlay} />
+            <Button label="pause" handleClick={handlePause} />
+            <b title={inverseTime}> {tMmSs}</b>
+          </span>
+        </label>
 
-    const classNames = setClassName(isDone, isEdit, isHidden);
-    const editField = isEdit && (
-      <TaskEditField tid={id} value={description} onChange={handlers.change} onSubmit={handlers.submit} />
-    );
-    const checkedToggle = isDone ? 'checked' : '';
-
-    return (
-      <li className={classNames}>
-        <div className="view">
-          <input
-            className="toggle"
-            id={`check${id}`}
-            type="checkbox"
-            onChange={() => handlers.check(id)}
-            tabIndex="0"
-            checked={checkedToggle}
-          />
-          <label htmlFor={`check${id}`}>
-            <span className="title" onDoubleClick={() => handlers.check(id)}>
-              {description}
-              <br />
-              <span className="created">
-                {formatDistanceToNow(created, { addSuffix: true, locale: ruLocale })}
-              </span>
-            </span>
-
-            <span className="description">
-              <button className="icon icon-play" type="button" onClick={this.handlePlay} aria-label="play" />
-              <button className="icon icon-pause" type="button" onClick={this.handlePause} aria-label="pause" />
-              <b title={inverseTime}> {tMmSs}</b>
-            </span>
-          </label>
-
-          <button
-            aria-label="Edit"
-            type="button"
-            className="icon icon-edit"
-            onClick={() => handlers.edit(id)}
-            tabIndex="0"
-          />
-
-          <button
-            aria-label="Delete"
-            type="button"
-            className="icon icon-destroy"
-            onClick={() => handlers.delete(id)}
-            tabIndex="0"
-          />
-        </div>
-        {editField}
-      </li>
-    );
-  }
+        <Button label="edit" handleClick={() => handlers.edit(id)} />
+        <Button label="destroy" handleClick={() => handlers.delete(id)} />
+      </div>
+      {editField}
+    </li>
+  );
 }
 
 Task.defaultProps = {
@@ -165,3 +134,5 @@ Task.propTypes = {
   timeLeft: PropTypes.number,
   handlers: PropTypes.objectOf(PropTypes.func).isRequired,
 };
+
+export default Task;
