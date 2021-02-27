@@ -8,6 +8,7 @@ const enums = {
   DONE: 'Completed',
   PROP_DONE: 'isDone',
   PROP_EDIT: 'isEdit',
+  PROP_PAUSED: 'isPaused',
 };
 
 export default enums;

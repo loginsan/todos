@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { formatDistanceToNow } from 'date-fns';
 import ruLocale from 'date-fns/locale/ru';
@@ -8,9 +8,9 @@ import './Task.css';
 import enums from '../../../../constant';
 
 
-const printTick = (tp) => (tp > 9 ? `${tp}` : `0${tp}`);
+const digits = (tp) => (tp > 9 ? `${tp}` : `0${tp}`);
 
-const splitTime = (time) => `${printTick(Math.floor(time / 60))}:${printTick(time % 60)}`;
+const splitTime = (time) => `${digits(Math.floor(time / 60))}:${digits(time % 60)}`;
 
 const setClassName = (isDone, isEdit, isHidden) => {
   let classNames = '';
@@ -42,38 +42,16 @@ function useInterval(callback, delay) {
 }
 
 
-const Task = ({ id, isDone, isEdit, isHidden, description, created, handlers, timeLeft }) => {
-  const [paused, setPaused] = useState(true);
-  const [time, setTime] = useState(timeLeft);
+const Task = ({ id, isDone, isEdit, isHidden, description, created, handlers, timeLimit, timeLeft, isPaused }) => {
 
   useInterval(() => {
-    if (!paused && time > 0) {
-      setTime(time - 1);
-    }
+    handlers.tick(id)
   }, 1000);
 
-  useEffect(() => {
-    if (isDone) {
-      if (!paused) {
-        setPaused(isDone);
-      }
-    }
-  }, [isDone, paused]);
-
-  const handlePause = () => {
-    if (!paused && time > 0) {
-      setPaused(true);
-    }
-  }
-
-  const handlePlay = () => {
-    if (paused && time > 0 && !isDone) {
-      setPaused(false);
-    }
-  }
-
-  const tMmSs = splitTime(time);
-  const inverseTime = `Потрачено ${timeLeft - time} секунд`;
+  const tMmSs = splitTime(timeLeft);
+  const todoPaused = isPaused? 'приостановлена' : 'выполняется';
+  const todoState = `Задача ${isDone ? 'выполнена' : todoPaused}.`;
+  const inverseTime = `${todoState} Потрачено ${timeLimit - timeLeft} секунд`;
 
   const classNames = setClassName(isDone, isEdit, isHidden);
   const editField = isEdit && (
@@ -100,8 +78,8 @@ const Task = ({ id, isDone, isEdit, isHidden, description, created, handlers, ti
           </span>
 
           <span className="description">
-            <Button label="play" handleClick={handlePlay} />
-            <Button label="pause" handleClick={handlePause} />
+            <Button label="play" handleClick={() => handlers.play(id)} />
+            <Button label="pause" handleClick={() => handlers.pause(id)} />
             <b title={inverseTime}> {tMmSs}</b>
           </span>
         </label>
@@ -121,7 +99,9 @@ Task.defaultProps = {
   isHidden: false,
   description: 'Just do it',
   created: Date.now(),
+  timeLimit: 300,
   timeLeft: 300,
+  isPaused: true,
 };
 
 Task.propTypes = {
@@ -131,7 +111,9 @@ Task.propTypes = {
   isHidden: PropTypes.bool,
   description: PropTypes.string,
   created: PropTypes.number,
+  timeLimit: PropTypes.number,
   timeLeft: PropTypes.number,
+  isPaused: PropTypes.bool,
   handlers: PropTypes.objectOf(PropTypes.func).isRequired,
 };
 

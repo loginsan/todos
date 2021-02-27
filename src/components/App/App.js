@@ -6,21 +6,12 @@ import enums from '../../constant';
 
 const setId = () => `key${Date.now() - Math.ceil(1000 * Math.random())}`;
 
-const createTodoObj = (text, time) => ({
-  id: setId(),
-  isDone: false,
-  isEdit: false,
-  isHidden: false,
-  description: text,
-  created: Date.now(),
-  timeLeft: time,
-});
-
 const clearInputs = (nodes) => {
   const inputs = nodes;
   for (let i = 0; i < inputs.length; i++) {
     inputs[i].current.value = '';
   }
+  inputs[0].current.focus();
 };
 
 const toggleProp = (props, id, name) => props.map(el => (el.id === id ? { ...el, [name]: !el[name] } : el));
@@ -29,20 +20,35 @@ const saveState = (data) => {
   localStorage.setItem('todoState', JSON.stringify(data));
 };
 
+const pauseAllTimers = (tArray) => tArray.map((el) => (!el.isPaused ? { ...el, isPaused: true } : el));
+
 const initData = () => {
   const loadState = localStorage.getItem('todoState');
-  return loadState !== null? JSON.parse(loadState) : [];
+  return loadState !== null ? pauseAllTimers( JSON.parse(loadState) ) : [];
 }
 
+
 const App = () => {
-  const [todoData, setTodoData] = useState( initData() );
+  const [saved, setSaved] = useState( () => initData() );
+  const [todoData, setTodoData] = useState([]);
 
   useEffect(() => {
-    saveState(todoData); 
+    if (saved.length) {
+      const todo = saved[0];
+      setSaved(saved.slice(1));
+      setTodoData([...todoData, todo]);
+    }
+  }, [saved, todoData]);
+
+  useEffect(() => {
+    saveState(todoData);
   }, [todoData]);
 
   const onToggleDone = (id) => {
-    setTodoData( toggleProp(todoData, id, enums.PROP_DONE) );
+    const withDone = toggleProp(todoData, id, enums.PROP_DONE).map((el) =>
+      el.id === id && el.isDone && !el.isPaused ? { ...el, isPaused: true } : el
+    );
+    setTodoData(withDone);
   };
 
   const onEdit = (id) => {
@@ -72,6 +78,20 @@ const App = () => {
     );
   };
 
+  const handlePause = (id) => {
+    const todo = todoData.find(el => el.id === id);
+    if (todo && !todo.isPaused && todo.timeLeft > 0) {
+      setTodoData( toggleProp(todoData, id, enums.PROP_PAUSED) );
+    }
+  };
+
+  const handlePlay = (id) => {
+    const todo = todoData.find(el => el.id === id);
+    if (todo && todo.isPaused && todo.timeLeft > 0 && !todo.isDone) {
+      setTodoData( toggleProp(todoData, id, enums.PROP_PAUSED) );
+    }
+  };
+
   const onFilterList = (event, filter = enums.ALL) => {
     document.querySelector('.filters .selected').classList.remove('selected');
     event.target.classList.add('selected');
@@ -84,6 +104,20 @@ const App = () => {
       })
     );
   };
+
+  const createTodoObj = (text, time) => (
+    {
+      id: setId(),
+      isDone: false,
+      isEdit: false,
+      isHidden: false,
+      description: text,
+      created: Date.now(),
+      timeLimit: time,
+      timeLeft: time,
+      isPaused: true,
+    }
+  );
 
   const onAddTodo = (event, refArray) => {
     const ev = event;
@@ -99,12 +133,23 @@ const App = () => {
     }
   };
 
+  const handleTick = (id) => {
+    const tickedTodo = todoData.find(el => el.id === id);
+    if (tickedTodo && !tickedTodo.isPaused && tickedTodo.timeLeft > 0) {
+      // console.log(`id: ${id}: ${tickedTodo.timeLeft}`);
+      setTodoData(todoData.map(el => (el.id === id ? { ...el, timeLeft: tickedTodo.timeLeft - 1 } : el)));
+    } 
+  }
+
   const listHandlers = () => ({
     delete: onDelete,
     check: onToggleDone,
     edit: onEdit,
     submit: onEditKeyUp,
     change: onChangeText,
+    play: handlePlay,
+    pause: handlePause,
+    tick: handleTick,
   });
 
   const footerHandlers = () => ({
