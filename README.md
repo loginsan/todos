@@ -1,1 +1,1 @@
-[Ссылка на развёрнутое приложение](https://react-todo-app-liard.vercel.app)
+[Ссылка на развёрнутое приложение](https://react-todo-app-loginsan.vercel.app)
